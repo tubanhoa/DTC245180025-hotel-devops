@@ -1,0 +1,11 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: alert-sink-webhook
+    receivers:
+      - uid: alert-sink-receiver
+        type: webhook
+        settings:
+          url: http://alert-sink:8080/webhook
+          httpMethod: POST

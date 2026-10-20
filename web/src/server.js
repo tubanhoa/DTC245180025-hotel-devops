@@ -7,6 +7,9 @@ const { csrfProtection } = require('./middleware/auth');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Security: An X-Powered-By
+app.disable('x-powered-by');
+
 app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../views'));
@@ -29,7 +32,7 @@ app.use(session({
   cookie: {
     httpOnly: true,
     sameSite: 'strict',
-    secure: process.env.NODE_ENV === 'production' && process.env.COOKIE_SECURE === 'true',
+    secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000 // 24 giờ
   }
 }));

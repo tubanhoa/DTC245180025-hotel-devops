@@ -11,3 +11,6 @@
 | **Container Metrics** | `gcr.io/cadvisor/cadvisor` | `gcr.io/cadvisor/cadvisor:v0.49.1` | Giám sát CPU, RAM, Network I/O của Docker containers |
 | **Nginx Exporter** | `nginx/nginx-prometheus-exporter` | `nginx/nginx-prometheus-exporter:1.3.0` | Thu thập thông số kết nối và request của Nginx từ stub_status |
 | **PostgreSQL Exporter** | `prometheuscommunity/postgres-exporter` | `prometheuscommunity/postgres-exporter:v0.15.0` | Thu thập chỉ số giao dịch, kết nối, cache hit của PostgreSQL |
+| **Log Collector** | `grafana/loki` | `grafana/loki:3.1.1` | Hệ thống lưu trữ và đánh chỉ mục Log tập trung |
+| **Log Shipper** | `grafana/promtail` | `grafana/promtail:3.1.1` | Thu thập nhật ký container từ Docker daemon chuyển về Loki |
+| **Alert Sink** | `node` | `node:20.18.0-alpine3.20` | Webhook receiver nhận cảnh báo an toàn thông tin |

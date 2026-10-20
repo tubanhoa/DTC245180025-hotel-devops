@@ -2,6 +2,7 @@
 set -e
 
 EVIDENCE_FILE="$HOME/hotel/evidence/buoc4-giamsat.txt"
+GRAFANA_PW=$(grep '^GRAFANA_ADMIN_PASSWORD=' "$HOME/hotel/.env" | cut -d '=' -f2)
 mkdir -p "$HOME/hotel/evidence"
 
 echo "================================================================================" > "$EVIDENCE_FILE"
@@ -46,12 +47,12 @@ curl -skI https://127.0.0.1/grafana/login >> "$EVIDENCE_FILE"
 echo "" >> "$EVIDENCE_FILE"
 
 echo "8. KIỂM TRA GRAFANA PROVISIONED DATASOURCE (API):" >> "$EVIDENCE_FILE"
-curl -sk -u 'admin:gR4f4n4_S3cur3_2026!' https://127.0.0.1/grafana/api/datasources >> "$EVIDENCE_FILE"
+curl -sk -u 'admin:$GRAFANA_PW' https://127.0.0.1/grafana/api/datasources >> "$EVIDENCE_FILE"
 echo "" >> "$EVIDENCE_FILE"
 echo "" >> "$EVIDENCE_FILE"
 
 echo "9. KIỂM TRA GRAFANA 3 DASHBOARDS TRONG THƯ MỤC 'Restaurant Monitoring' (API):" >> "$EVIDENCE_FILE"
-curl -sk -u 'admin:gR4f4n4_S3cur3_2026!' https://127.0.0.1/grafana/api/search >> "$EVIDENCE_FILE"
+curl -sk -u 'admin:$GRAFANA_PW' https://127.0.0.1/grafana/api/search >> "$EVIDENCE_FILE"
 echo "" >> "$EVIDENCE_FILE"
 echo "" >> "$EVIDENCE_FILE"
 

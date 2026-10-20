@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-CERT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/certs" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CERT_DIR="$SCRIPT_DIR/certs"
 mkdir -p "$CERT_DIR"
 
 VM_IP="192.168.186.130"
@@ -37,7 +38,11 @@ DNS.1 = localhost
 DNS.2 = hotel.local
 EOF
 
-openssl req -x509 -nodes -days 365 -newkey rsa:2048   -keyout "$CERT_DIR/server.key"   -out "$CERT_DIR/server.crt"   -config "$CONFIG_FILE"   -extensions req_ext
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout "$CERT_DIR/server.key" \
+  -out "$CERT_DIR/server.crt" \
+  -config "$CONFIG_FILE" \
+  -extensions req_ext
 
 chmod 600 "$CERT_DIR/server.key"
 chmod 644 "$CERT_DIR/server.crt"
