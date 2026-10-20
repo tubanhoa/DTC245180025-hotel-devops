@@ -44,8 +44,28 @@ Kiểm tra trạng thái các dịch vụ:
 docker compose ps
 ```
 
+### Lưu ý quan trọng khi khởi động lại với Volume CSDL đã tồn tại
+Khi khởi chạy hệ thống trên CSDL đã khởi tạo từ trước (Volume `hotel_db_data` đã tồn tại), script `db/init.sql` sẽ không chạy lại tự động. Để đảm bảo người dùng `exporter` phục vụ Prometheus có đầy đủ quyền giám sát `pg_monitor`, chạy lệnh sau:
+```bash
+docker exec -i hotel-db psql -U hotel_app -d hotel -c "DROP USER IF EXISTS exporter; CREATE USER exporter WITH PASSWORD 'p0stgr3s_3xp0rt3r_98234'; GRANT pg_monitor TO exporter;"
+```
+
 ---
 
 ## 3. Bảng Địa chỉ Truy cập
 - **Website Khách Sạn (HTTPS)**: `https://<VM_IP>/` (Cổng 80 tự động chuyển hướng 301 sang 443)
 - **Công cụ Quản trị CSDL (pgAdmin)**: `https://<VM_IP>/pgadmin/`
+- **Hệ thống Giám sát Hiệu năng (Grafana)**: `https://<VM_IP>/grafana/`
+  - Đăng nhập: Tài khoản `admin`, mật khẩu cấu hình trong `.env` (`GRAFANA_ADMIN_PASSWORD`).
+  - Đã nạp sẵn 3 Dashboards trong thư mục **Restaurant Monitoring**:
+    1. `Restaurant - Containers`: Giám sát CPU %, RAM, Network I/O thời gian thực của các container.
+    2. `Restaurant - Nginx`: Active connections, requests/sec, handled vs accepted connections.
+    3. `Restaurant - PostgreSQL`: Kết nối CSDL, giao dịch/s (commit/rollback), cache hit ratio, kích thước CSDL.
+
+### Cách xem Giao diện Prometheus Targets qua SSH Tunnel
+Do Prometheus (`hotel-prometheus:9090`) được bảo mật an toàn trong mạng nội bộ Docker và không mở cổng ra ngoài, để truy cập giao diện Prometheus Web UI từ máy Windows (để chụp ảnh / kiểm tra):
+1. Mở PowerShell hoặc Git Bash trên máy Windows:
+   ```bash
+   ssh -L 9090:localhost:9090 quachtuan@<VM_IP>
+   ```
+2. Mở trình duyệt trên máy Windows vào: `http://localhost:9090/targets`

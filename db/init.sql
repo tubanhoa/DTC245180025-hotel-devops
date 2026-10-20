@@ -200,3 +200,8 @@ ON CONFLICT DO NOTHING;
 INSERT INTO bookings (booking_code, user_id, room_id, check_in_date, check_out_date, guests, note, status, price_per_night, total_amount, created_by, created_at)
 VALUES ('BK-202610-003', 4, 8, CURRENT_DATE + INTERVAL '3 days', CURRENT_DATE + INTERVAL '5 days', 2, 'Cần chuẩn bị phòng tầng cao view đẹp', 'confirmed', 1200000, 2400000, 4, CURRENT_TIMESTAMP)
 ON CONFLICT (booking_code) DO NOTHING;
+
+-- Tạo người dùng exporter cho Prometheus postgres_exporter (role pg_monitor)
+DROP USER IF EXISTS exporter;
+CREATE USER exporter WITH PASSWORD 'p0stgr3s_3xp0rt3r_98234';
+GRANT pg_monitor TO exporter;
