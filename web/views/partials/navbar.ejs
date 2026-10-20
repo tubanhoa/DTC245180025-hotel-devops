@@ -1,0 +1,30 @@
+<header>
+  <nav class="navbar">
+    <a href="/rooms" class="brand">
+      🏨 <span>Grand Hotel</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/rooms" class="<%= typeof currentPath !== 'undefined' && currentPath === '/rooms' ? 'active' : '' %>">Danh Sách Phòng</a></li>
+      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+        <% if (currentUser.role === 'customer') { %>
+          <li><a href="/my-bookings" class="<%= currentPath === '/my-bookings' ? 'active' : '' %>">Đơn Của Tôi</a></li>
+        <% } %>
+        <% if (currentUser.role === 'staff' || currentUser.role === 'manager') { %>
+          <li><a href="/reception" class="<%= currentPath === '/reception' ? 'active' : '' %>">Bàn Lễ Tân</a></li>
+        <% } %>
+        <% if (currentUser.role === 'manager') { %>
+          <li><a href="/manager/dashboard" class="<%= currentPath === '/manager/dashboard' ? 'active' : '' %>">KPI Dashboard</a></li>
+          <li><a href="/manager/rooms" class="<%= currentPath === '/manager/rooms' ? 'active' : '' %>">Quản Lý Phòng</a></li>
+          <li><a href="/manager/services" class="<%= currentPath === '/manager/services' ? 'active' : '' %>">Dịch Vụ</a></li>
+          <li><a href="/manager/staff" class="<%= currentPath === '/manager/staff' ? 'active' : '' %>">Nhân Sự</a></li>
+        <% } %>
+        <li><span class="user-badge"><%= currentUser.role %>: <%= currentUser.username %></span></li>
+        <li><a href="/logout" style="color: #feb2b2;">Đăng Xuất</a></li>
+      <% } else { %>
+        <li><a href="/login" class="<%= typeof currentPath !== 'undefined' && currentPath === '/login' ? 'active' : '' %>">Đăng Nhập</a></li>
+        <li><a href="/register" class="btn btn-accent btn-sm">Đăng Ký Khách</a></li>
+      <% } %>
+    </ul>
+  </nav>
+</header>
+<main>

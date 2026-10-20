@@ -1,0 +1,64 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div style="margin-bottom: 1.5rem;">
+  <h2 style="color: var(--primary);">Lịch Sử Đặt Phòng Của Tôi</h2>
+  <p style="color: var(--text-muted);">Quản lý các đặt phòng hiện tại và lịch sử lưu trú tại Grand Hotel.</p>
+</div>
+
+<% if (typeof success !== 'undefined' && success) { %>
+  <div class="alert alert-success"><%= success %></div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Mã đặt phòng</th>
+        <th>Phòng / Loại</th>
+        <th>Ngày nhận</th>
+        <th>Ngày trả</th>
+        <th>Khách</th>
+        <th>Tổng tiền</th>
+        <th>Trạng thái</th>
+        <th>Thao tác</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (bookings.length === 0) { %>
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">Bạn chưa có đơn đặt phòng nào. Hãy khám phá và đặt phòng ngay nhé!</td>
+        </tr>
+      <% } else { %>
+        <% bookings.forEach(b => { %>
+          <tr>
+            <td><strong><%= b.booking_code %></strong></td>
+            <td>Phòng <%= b.room_number %> (<%= b.room_type_name %>)</td>
+            <td><%= new Date(b.check_in_date).toLocaleDateString('vi-VN') %></td>
+            <td><%= new Date(b.check_out_date).toLocaleDateString('vi-VN') %></td>
+            <td><%= b.guests %> người</td>
+            <td><strong><%= Number(b.total_amount).toLocaleString('vi-VN') %>đ</strong></td>
+            <td><span class="badge badge-<%= b.status %>"><%= b.status %></span></td>
+            <td>
+              <% if (b.status === 'pending' || b.status === 'confirmed') { %>
+                <form action="/my-bookings/<%= b.id %>/cancel" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đặt phòng này?')">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button type="submit" class="btn btn-danger btn-sm">Hủy Đặt</button>
+                </form>
+              <% } else if (b.status === 'checked_out') { %>
+                <a href="/reception/invoice/<%= b.id %>" class="btn btn-primary btn-sm" target="_blank">Xem Hóa Đơn</a>
+              <% } else { %>
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Không khả dụng</span>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/footer') %>

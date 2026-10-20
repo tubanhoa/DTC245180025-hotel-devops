@@ -1,0 +1,47 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div style="max-width: 480px; margin: 2rem auto; background: var(--card-bg); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border);">
+  <h2 style="text-align: center; color: var(--primary); margin-bottom: 1.5rem;">Đăng Ký Tài Khoản Khách Hàng</h2>
+
+  <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+
+  <form action="/register" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div style="margin-bottom: 1rem;">
+      <label style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Họ và tên *</label>
+      <input type="text" name="full_name" required placeholder="Ví dụ: Nguyễn Văn A">
+    </div>
+
+    <div style="margin-bottom: 1rem;">
+      <label style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Tên đăng nhập *</label>
+      <input type="text" name="username" required placeholder="Tên đăng nhập viết liền không dấu...">
+    </div>
+
+    <div style="margin-bottom: 1rem;">
+      <label style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Email liên hệ *</label>
+      <input type="email" name="email" required placeholder="example@email.com">
+    </div>
+
+    <div style="margin-bottom: 1rem;">
+      <label style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Số điện thoại</label>
+      <input type="text" name="phone" placeholder="09xxxxxxxx">
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <label style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Mật khẩu (tối thiểu 6 ký tự) *</label>
+      <input type="password" name="password" required minlength="6" placeholder="Nhập mật khẩu an toàn...">
+    </div>
+
+    <button type="submit" class="btn btn-accent" style="width: 100%;">Tạo Tài Khoản Khách</button>
+  </form>
+
+  <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+    Đã có tài khoản? <a href="/login" style="color: var(--primary); font-weight: 600;">Đăng nhập</a>
+  </p>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,72 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+  <div>
+    <h2 style="color: var(--primary);">Quản Lý Dịch Vụ Phát Sinh</h2>
+    <p style="color: var(--text-muted);">Quản lý danh mục các dịch vụ bổ sung phục vụ khách lưu trú.</p>
+  </div>
+</div>
+
+<% if (typeof success !== 'undefined' && success) { %>
+  <div class="alert alert-success"><%= success %></div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
+<div style="display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem;">
+  <div style="background: #fff; padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); height: fit-content;">
+    <h3 style="color: var(--primary); margin-bottom: 1rem;">➕ Thêm Dịch Vụ Mới</h3>
+    <form action="/manager/services" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div style="margin-bottom: 0.75rem;">
+        <label style="font-weight: 600;">Tên dịch vụ *</label>
+        <input type="text" name="name" required placeholder="Ví dụ: Đưa đón ga tàu...">
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600;">Đơn giá (VND) *</label>
+        <input type="number" name="price" required min="0" step="5000" placeholder="100000">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Lưu Dịch Vụ</button>
+    </form>
+  </div>
+
+  <div class="table-container" style="margin-top: 0;">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tên dịch vụ</th>
+          <th>Đơn giá</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% services.forEach(s => { %>
+          <tr>
+            <td>#<%= s.id %></td>
+            <td><strong><%= s.name %></strong></td>
+            <td><strong><%= Number(s.price).toLocaleString('vi-VN') %>đ</strong></td>
+            <td>
+              <span class="badge <%= s.is_available ? 'badge-available' : 'badge-maintenance' %>">
+                <%= s.is_available ? 'Đang phục vụ' : 'Tạm ngưng' %>
+              </span>
+            </td>
+            <td>
+              <form action="/manager/services/<%= s.id %>/toggle" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn btn-sm <%= s.is_available ? 'btn-danger' : 'btn-success' %>">
+                  <%= s.is_available ? 'Tạm Ngưng' : 'Mở Lại' %>
+                </button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

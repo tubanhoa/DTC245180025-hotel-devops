@@ -1,0 +1,114 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div style="margin-bottom: 1.5rem;">
+  <h2 style="color: var(--primary);">Quản Lý Loại Phòng & Phòng</h2>
+  <p style="color: var(--text-muted);">Thêm hạng phòng mới kèm upload ảnh, quản lý giá và trạng thái bảo trì phòng.</p>
+</div>
+
+<% if (typeof success !== 'undefined' && success) { %>
+  <div class="alert alert-success"><%= success %></div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  <!-- Form Thêm Loại Phòng & Upload Ảnh -->
+  <div style="background: #fff; padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow);">
+    <h3 style="color: var(--primary); margin-bottom: 1rem;">➕ Thêm Hạng Phòng Mới</h3>
+    <form action="/manager/room-types" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div style="margin-bottom: 0.75rem;">
+        <label style="font-weight: 600;">Tên hạng phòng *</label>
+        <input type="text" name="name" required placeholder="Ví dụ: Executive Suite...">
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <label style="font-weight: 600;">Giá cơ bản (VND/đêm) *</label>
+        <input type="number" name="base_price" required min="0" step="10000" placeholder="1500000">
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <label style="font-weight: 600;">Sức chứa tối đa (người) *</label>
+        <input type="number" name="capacity" required min="1" max="10" value="2">
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <label style="font-weight: 600;">Mô tả phòng</label>
+        <textarea name="description" rows="2" placeholder="Mô tả phong cách, diện tích..."></textarea>
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <label style="font-weight: 600;">Tiện nghi</label>
+        <input type="text" name="amenities" placeholder="WiFi, Bồn tắm, Smart TV...">
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600;">Ảnh đại diện (PNG, JPG, WEBP <= 2MB)</label>
+        <input type="file" name="image" accept="image/png,image/jpeg,image/webp">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Tạo Hạng Phòng</button>
+    </form>
+  </div>
+
+  <!-- Form Thêm Số Phòng -->
+  <div style="background: #fff; padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow);">
+    <h3 style="color: var(--primary); margin-bottom: 1rem;">➕ Thêm Phòng Mới Vào Hệ Thống</h3>
+    <form action="/manager/rooms" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div style="margin-bottom: 0.75rem;">
+        <label style="font-weight: 600;">Số phòng *</label>
+        <input type="text" name="room_number" required placeholder="Ví dụ: 501, 502...">
+      </div>
+      <div style="margin-bottom: 0.75rem;">
+        <label style="font-weight: 600;">Hạng phòng *</label>
+        <select name="room_type_id" required>
+          <% roomTypes.forEach(t => { %>
+            <option value="<%= t.id %>"><%= t.name %> (<%= Number(t.base_price).toLocaleString() %>đ)</option>
+          <% }) %>
+        </select>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600;">Tầng lầu *</label>
+        <input type="number" name="floor" required min="1" max="20" value="1">
+      </div>
+      <button type="submit" class="btn btn-accent" style="width: 100%;">Thêm Phòng</button>
+    </form>
+  </div>
+</div>
+
+<!-- Bảng Danh Sách Phòng & Trạng Thái Bảo Trì -->
+<h3 style="color: var(--primary); margin-bottom: 0.5rem;">Danh Sách Tất Cả Phòng</h3>
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Số phòng</th>
+        <th>Tầng</th>
+        <th>Hạng phòng</th>
+        <th>Trạng thái hiện tại</th>
+        <th>Bảo trì</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rooms.forEach(r => { %>
+        <tr>
+          <td><strong>Phòng <%= r.room_number %></strong></td>
+          <td>Tầng <%= r.floor %></td>
+          <td><%= r.room_type_name %></td>
+          <td><span class="badge badge-<%= r.status %>"><%= r.status %></span></td>
+          <td>
+            <form action="/manager/rooms/<%= r.id %>/toggle-maintenance" method="POST">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <% if (r.status === 'maintenance') { %>
+                <button class="btn btn-success btn-sm">Mở Lại Phòng</button>
+              <% } else { %>
+                <button class="btn btn-danger btn-sm" <%= r.status === 'occupied' ? 'disabled title="Phòng đang có khách"' : '' %>>Đặt Bảo Trì</button>
+              <% } %>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <rect width="800" height="500" fill="#faf5ff"/>
+  <rect x="40" y="40" width="720" height="420" rx="16" fill="#ffffff" stroke="#6b46c1" stroke-width="4"/>
+  <circle cx="400" cy="200" r="70" fill="#6b46c1" opacity="0.15"/>
+  <path d="M360 210 L440 210 L440 240 L360 240 Z" fill="#6b46c1"/>
+  <path d="M350 170 Q400 130 450 170 L450 200 L350 200 Z" fill="#6b46c1"/>
+  <text x="400" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="34" font-weight="bold" fill="#1a202c" text-anchor="middle">Presidential Suite</text>
+  <rect x="300" y="350" width="200" height="40" rx="20" fill="#6b46c1"/>
+  <text x="400" y="376" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#ffffff" text-anchor="middle">Thượng Hạng Panorama</text>
+</svg>

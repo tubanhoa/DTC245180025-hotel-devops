@@ -1,0 +1,107 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div style="margin-bottom: 2rem;">
+  <h2 style="color: var(--primary);">Báo Cáo Hiệu Suất & KPI Khách Sạn</h2>
+  <p style="color: var(--text-muted);">Thống kê số liệu doanh thu thực tế, lượt khách, công suất phòng và các chỉ số kinh doanh then chốt.</p>
+</div>
+
+<!-- Thẻ KPI chính -->
+<div class="kpi-grid">
+  <div class="kpi-card" style="border-left-color: var(--success);">
+    <div class="kpi-label">Doanh thu hôm nay</div>
+    <div class="kpi-val"><%= Number(kpi.revenue_today).toLocaleString('vi-VN') %>đ</div>
+  </div>
+  <div class="kpi-card" style="border-left-color: var(--primary);">
+    <div class="kpi-label">Lượt check-in hôm nay</div>
+    <div class="kpi-val"><%= kpi.checkins_today %> lượt</div>
+  </div>
+  <div class="kpi-card" style="border-left-color: var(--warning);">
+    <div class="kpi-label">Đặt phòng sắp tới</div>
+    <div class="kpi-val"><%= kpi.upcoming_bookings %> đơn</div>
+  </div>
+  <div class="kpi-card" style="border-left-color: var(--accent);">
+    <div class="kpi-label">Phòng đang có khách</div>
+    <div class="kpi-val"><%= kpi.occupied_rooms %> / <%= kpi.total_rooms %> phòng</div>
+  </div>
+  <div class="kpi-card" style="border-left-color: #6b46c1;">
+    <div class="kpi-label">Tỷ lệ lấp đầy (Occupancy)</div>
+    <div class="kpi-val"><%= occupancyRate %>%</div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
+  <!-- Bảng Top Loại Phòng -->
+  <div style="background: #fff; padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow);">
+    <h3 style="color: var(--primary); margin-bottom: 1rem;">Top Hạng Phòng Được Đặt Nhiều Nhất</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Hạng phòng</th>
+          <th>Số lượt đặt</th>
+          <th style="text-align: right;">Doanh thu ước tính</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% topTypes.forEach(t => { %>
+          <tr>
+            <td><strong><%= t.name %></strong></td>
+            <td><%= t.booking_count %> lượt</td>
+            <td style="text-align: right;"><strong><%= Number(t.total_revenue).toLocaleString('vi-VN') %>đ</strong></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Bảng Top Dịch Vụ -->
+  <div style="background: #fff; padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow);">
+    <h3 style="color: var(--primary); margin-bottom: 1rem;">Top Dịch Vụ Gia Tăng Bán Chạy</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Tên dịch vụ</th>
+          <th>Số lượt phục vụ</th>
+          <th style="text-align: right;">Tổng doanh số</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (topServices.length === 0) { %>
+          <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Chưa có dữ liệu</td></tr>
+        <% } else { %>
+          <% topServices.forEach(s => { %>
+            <tr>
+              <td><strong><%= s.name %></strong></td>
+              <td><%= s.total_qty %> lần</td>
+              <td style="text-align: right;"><strong><%= Number(s.total_revenue).toLocaleString('vi-VN') %>đ</strong></td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Biểu đồ doanh thu 7 ngày gần nhất bằng CSS Bar Chart -->
+<div style="background: #fff; padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); margin-top: 1.5rem;">
+  <h3 style="color: var(--primary); margin-bottom: 1rem;">Doanh Thu Theo Ngày (Thống Kê Thanh Toán)</h3>
+  <% if (revenueByDay.length === 0) { %>
+    <p style="color: var(--text-muted); text-align: center; padding: 1.5rem;">Chưa có giao dịch thanh toán trong tuần này.</p>
+  <% } else { %>
+    <div style="display: flex; gap: 1.5rem; align-items: flex-end; height: 220px; padding-top: 1.5rem; border-bottom: 2px solid var(--border);">
+      <% 
+        const maxVal = Math.max(...revenueByDay.map(d => parseFloat(d.daily_revenue) || 1));
+        revenueByDay.forEach(d => {
+          const heightPct = Math.max(15, Math.round((parseFloat(d.daily_revenue) / maxVal) * 100));
+      %>
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end;">
+          <small style="font-size: 0.75rem; font-weight: 700; color: var(--primary); margin-bottom: 0.25rem;"><%= Number(d.daily_revenue).toLocaleString() %>đ</small>
+          <div style="width: 100%; max-width: 45px; height: <%= heightPct %>%; background: linear-gradient(to top, var(--primary), #3182ce); border-radius: 4px 4px 0 0;"></div>
+          <span style="font-size: 0.8rem; margin-top: 0.5rem; color: #4a5568;"><%= d.pay_date %></span>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

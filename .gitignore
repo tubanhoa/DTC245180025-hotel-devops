@@ -1,0 +1,12 @@
+.env
+nginx/certs/*.key
+nginx/certs/*.crt
+node_modules/
+evidence/
+docs/AUDIT.md
+web/public/uploads/*
+!web/public/uploads/.gitkeep
+*.log
+*.pid
+data/
+volumes/

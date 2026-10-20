@@ -1,0 +1,151 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div style="margin-bottom: 2rem;">
+  <h1 style="color: var(--primary); font-size: 2rem; margin-bottom: 0.5rem;">Danh Sách Phòng & Đặt Phòng Trực Tuyến</h1>
+  <p style="color: var(--text-muted);">Trải nghiệm nghỉ dưỡng đẳng cấp với các phòng nghỉ tiện nghi, dịch vụ 5 sao và giá tốt nhất.</p>
+</div>
+
+<!-- Khối lọc & Tìm kiếm phòng trống -->
+<div class="filter-box">
+  <form action="/rooms" method="GET">
+    <div class="filter-grid">
+      <div>
+        <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Ngày nhận phòng</label>
+        <input type="date" name="check_in" value="<%= filters.check_in || '' %>">
+      </div>
+      <div>
+        <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Ngày trả phòng</label>
+        <input type="date" name="check_out" value="<%= filters.check_out || '' %>">
+      </div>
+      <div>
+        <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Hạng phòng</label>
+        <select name="room_type_id">
+          <option value="">-- Tất cả hạng phòng --</option>
+          <% roomTypes.forEach(t => { %>
+            <option value="<%= t.id %>" <%= filters.room_type_id == t.id ? 'selected' : '' %>><%= t.name %> (<%= Number(t.base_price).toLocaleString() %>đ)</option>
+          <% }) %>
+        </select>
+      </div>
+      <div>
+        <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Sức chứa tối thiểu</label>
+        <select name="capacity">
+          <option value="">-- Bất kỳ --</option>
+          <option value="1" <%= filters.capacity == '1' ? 'selected' : '' %>>1 người trở lên</option>
+          <option value="2" <%= filters.capacity == '2' ? 'selected' : '' %>>2 người trở lên</option>
+          <option value="4" <%= filters.capacity == '4' ? 'selected' : '' %>>4 người trở lên</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 0.3rem;">Sắp xếp theo</label>
+        <select name="sort">
+          <option value="">Mặc định (Số phòng)</option>
+          <option value="price_asc" <%= filters.sort === 'price_asc' ? 'selected' : '' %>>Giá tăng dần</option>
+          <option value="price_desc" <%= filters.sort === 'price_desc' ? 'selected' : '' %>>Giá giảm dần</option>
+          <option value="name" <%= filters.sort === 'name' ? 'selected' : '' %>>Tên hạng phòng</option>
+        </select>
+      </div>
+      <div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">🔍 Tìm Phòng Trống</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Danh sách phòng hiển thị -->
+<div class="grid-cards">
+  <% if (rooms.length === 0) { %>
+    <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: #fff; border-radius: var(--radius);">
+      <p style="font-size: 1.2rem; color: var(--text-muted);">Không tìm thấy phòng nào phù hợp với tiêu chí tìm kiếm của bạn.</p>
+      <a href="/rooms" class="btn btn-primary" style="margin-top: 1rem;">Xem toàn bộ phòng</a>
+    </div>
+  <% } else { %>
+    <% rooms.forEach(room => { %>
+      <div class="card">
+        <img src="<%= room.image_path || '/images/rooms/standard.svg' %>" alt="<%= room.type_name %>" class="card-img">
+        <div class="card-body">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+            <div>
+              <span class="badge badge-<%= room.status %>">Phòng <%= room.room_number %> (Tầng <%= room.floor %>)</span>
+              <h3 class="card-title" style="margin-top: 0.25rem;"><%= room.type_name %></h3>
+            </div>
+            <span class="badge badge-<%= room.status %>"><%= room.status === 'available' ? 'Sẵn sàng' : (room.status === 'occupied' ? 'Có khách' : room.status) %></span>
+          </div>
+
+          <div class="card-price">
+            <%= Number(room.base_price).toLocaleString('vi-VN') %> VNĐ <span>/ đêm</span>
+          </div>
+
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem; flex: 1;">
+            <%= room.description %>
+          </p>
+
+          <div style="font-size: 0.85rem; color: #4a5568; margin-bottom: 1rem; border-top: 1px dashed var(--border); padding-top: 0.5rem;">
+            <strong>Tiện nghi:</strong> <%= room.amenities || 'Đầy đủ tiện nghi' %><br>
+            <strong>Sức chứa:</strong> Tối đa <%= room.capacity %> người
+          </div>
+
+          <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'customer') { %>
+            <button onclick="openBookingModal('<%= room.room_type_id %>', '<%= room.type_name %>', '<%= room.base_price %>', '<%= room.capacity %>')" class="btn btn-accent" style="width: 100%;">
+              Đặt Phòng Ngay
+            </button>
+          <% } else if (typeof currentUser !== 'undefined' && currentUser) { %>
+            <a href="/reception" class="btn btn-primary btn-sm" style="width: 100%;">Vào Bàn Lễ Tân</a>
+          <% } else { %>
+            <a href="/login" class="btn btn-primary btn-sm" style="width: 100%;">Đăng Nhập Để Đặt Phòng</a>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  <% } %>
+</div>
+
+<!-- Modal Đặt Phòng -->
+<div id="bookingModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: #fff; max-width: 480px; width: 100%; border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow); position: relative;">
+    <button onclick="closeBookingModal()" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+    <h3 id="modalTitle" style="color: var(--primary); margin-bottom: 1rem;">Đặt Phòng</h3>
+    <form action="/book" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="room_type_id" id="modalRoomTypeId">
+
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Ngày nhận phòng *</label>
+        <input type="date" name="check_in_date" id="modalCheckIn" required value="<%= filters.check_in || '' %>">
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Ngày trả phòng *</label>
+        <input type="date" name="check_out_date" id="modalCheckOut" required value="<%= filters.check_out || '' %>">
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Số lượng khách *</label>
+        <input type="number" name="guests" id="modalGuests" min="1" max="10" value="2" required>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.3rem;">Ghi chú đặc biệt</label>
+        <textarea name="note" rows="2" placeholder="Yêu cầu tầng cao, giường phụ..."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-accent" style="width: 100%;">Xác Nhận Đặt Phòng</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function openBookingModal(typeId, typeName, price, capacity) {
+  document.getElementById('modalRoomTypeId').value = typeId;
+  document.getElementById('modalTitle').innerText = 'Đặt Phòng ' + typeName;
+  document.getElementById('modalGuests').max = capacity;
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('modalCheckIn').min = today;
+  document.getElementById('bookingModal').style.display = 'flex';
+}
+function closeBookingModal() {
+  document.getElementById('bookingModal').style.display = 'none';
+}
+</script>
+
+<%- include('partials/footer') %>

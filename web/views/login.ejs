@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div style="max-width: 420px; margin: 3rem auto; background: var(--card-bg); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border);">
+  <h2 style="text-align: center; color: var(--primary); margin-bottom: 1.5rem;">Đăng Nhập Hệ Thống</h2>
+
+  <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+
+  <form action="/login" method="POST">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="redirect" value="<%= redirect %>">
+
+    <div style="margin-bottom: 1.25rem;">
+      <label style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Tên đăng nhập</label>
+      <input type="text" name="username" required placeholder="Nhập username..." autofocus>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <label style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Mật khẩu</label>
+      <input type="password" name="password" required placeholder="Nhập mật khẩu...">
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%;">Đăng Nhập</button>
+  </form>
+
+  <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+    Chưa có tài khoản khách hàng? <a href="/register" style="color: var(--primary); font-weight: 600;">Đăng ký ngay</a>
+  </p>
+</div>
+
+<%- include('partials/footer') %>

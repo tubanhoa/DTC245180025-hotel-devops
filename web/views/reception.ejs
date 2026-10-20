@@ -1,0 +1,238 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h2 style="color: var(--primary);">Bàn Lễ Tân & Tiếp Nhận Khách</h2>
+    <p style="color: var(--text-muted);">Quản lý check-in, check-out, thêm dịch vụ phát sinh và tạo đặt phòng trực tiếp (Walk-in).</p>
+  </div>
+  <button onclick="document.getElementById('walkinModal').style.display='flex'" class="btn btn-accent">➕ Đặt Phòng Trực Tiếp (Walk-in)</button>
+</div>
+
+<% if (typeof success !== 'undefined' && success) { %>
+  <div class="alert alert-success"><%= success %></div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
+<!-- Danh Sách Đặt Phòng Cần Xử Lý -->
+<h3 style="color: var(--primary); margin: 1.5rem 0 0.5rem 0;">Danh Sách Đơn Đặt Phòng</h3>
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Mã</th>
+        <th>Khách hàng</th>
+        <th>Phòng</th>
+        <th>Thời gian</th>
+        <th>Tổng tiền phòng</th>
+        <th>Trạng thái</th>
+        <th>Hành động Lễ Tân</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% bookings.forEach(b => { %>
+        <tr>
+          <td><strong><%= b.booking_code %></strong></td>
+          <td>
+            <strong><%= b.customer_name %></strong><br>
+            <small style="color: var(--text-muted);"><%= b.customer_phone || '' %></small>
+          </td>
+          <td>Phòng <%= b.room_number %> (<%= b.room_type_name %>)</td>
+          <td>
+            <%= new Date(b.check_in_date).toLocaleDateString('vi-VN') %> &rarr; <%= new Date(b.check_out_date).toLocaleDateString('vi-VN') %>
+          </td>
+          <td><strong><%= Number(b.total_amount).toLocaleString('vi-VN') %>đ</strong></td>
+          <td><span class="badge badge-<%= b.status %>"><%= b.status %></span></td>
+          <td style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+            <% if (b.status === 'pending') { %>
+              <form action="/reception/bookings/<%= b.id %>/confirm" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn btn-primary btn-sm">Xác Nhận</button>
+              </form>
+            <% } %>
+
+            <% if (b.status === 'confirmed') { %>
+              <form action="/reception/bookings/<%= b.id %>/check-in" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn btn-success btn-sm">Check-in</button>
+              </form>
+              <form action="/reception/bookings/<%= b.id %>/cancel" method="POST" onsubmit="return confirm('Hủy đơn đặt phòng này?')">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn btn-danger btn-sm">Hủy</button>
+              </form>
+            <% } %>
+
+            <% if (b.status === 'checked_in') { %>
+              <button onclick="openServiceModal('<%= b.id %>', '<%= b.booking_code %>')" class="btn btn-primary btn-sm">+ Dịch Vụ</button>
+              <button onclick="openCheckoutModal('<%= b.id %>', '<%= b.booking_code %>', '<%= b.total_amount %>')" class="btn btn-accent btn-sm">Check-out</button>
+            <% } %>
+
+            <% if (b.status === 'checked_out') { %>
+              <a href="/reception/invoice/<%= b.id %>" class="btn btn-primary btn-sm" target="_blank">Hóa Đơn</a>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Trạng Thái Toàn Bộ Phòng & Dọn Phòng -->
+<h3 style="color: var(--primary); margin: 2.5rem 0 0.5rem 0;">Trạng Thái 22 Phòng Khách Sạn</h3>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; margin-top: 1rem;">
+  <% rooms.forEach(r => { %>
+    <div style="background: #fff; padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border); text-align: center;">
+      <h4 style="font-size: 1.2rem; color: var(--primary);">Phòng <%= r.room_number %></h4>
+      <p style="font-size: 0.8rem; color: var(--text-muted);"><%= r.room_type_name %> (Tầng <%= r.floor %>)</p>
+      <div style="margin: 0.5rem 0;">
+        <span class="badge badge-<%= r.status %>"><%= r.status %></span>
+      </div>
+      <% if (r.status === 'cleaning') { %>
+        <form action="/reception/rooms/<%= r.id %>/cleaned" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="btn btn-success btn-sm" style="width: 100%; font-size: 0.75rem;">Đã Dọn Xong</button>
+        </form>
+      <% } %>
+    </div>
+  <% }) %>
+</div>
+
+<!-- Modal Walk-in -->
+<div id="walkinModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: #fff; max-width: 500px; width: 100%; border-radius: var(--radius); padding: 2rem; position: relative; max-height: 90vh; overflow-y: auto;">
+    <button onclick="document.getElementById('walkinModal').style.display='none'" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+    <h3 style="color: var(--primary); margin-bottom: 1rem;">Đặt Phòng Trực Tiếp (Walk-in)</h3>
+    <form action="/reception/walk-in" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600;">Khách hàng</label>
+        <select name="customer_mode" id="customerMode" onchange="toggleCustomerMode()">
+          <option value="existing">Khách có sẵn trong hệ thống</option>
+          <option value="new">Tạo nhanh tài khoản khách mới</option>
+        </select>
+      </div>
+
+      <div id="existingCustomerBox" style="margin-bottom: 1rem;">
+        <label style="font-weight: 600;">Chọn khách hàng:</label>
+        <select name="existing_user_id">
+          <% customers.forEach(c => { %>
+            <option value="<%= c.id %>"><%= c.full_name %> (<%= c.username %> - <%= c.phone || 'Không SĐT' %>)</option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div id="newCustomerBox" style="display: none; background: #edf2f7; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+        <input type="text" name="new_username" placeholder="Username khách mới..." style="margin-bottom: 0.5rem;">
+        <input type="text" name="new_fullname" placeholder="Họ và tên..." style="margin-bottom: 0.5rem;">
+        <input type="text" name="new_phone" placeholder="Số điện thoại...">
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600;">Hạng phòng:</label>
+        <select name="room_type_id" required>
+          <% roomTypes.forEach(t => { %>
+            <option value="<%= t.id %>"><%= t.name %> (<%= Number(t.base_price).toLocaleString() %>đ/đêm)</option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;">
+        <div>
+          <label style="font-weight: 600;">Ngày nhận</label>
+          <input type="date" name="check_in_date" required id="walkInCheckIn">
+        </div>
+        <div>
+          <label style="font-weight: 600;">Ngày trả</label>
+          <input type="date" name="check_out_date" required id="walkInCheckOut">
+        </div>
+      </div>
+
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600;">Số lượng khách:</label>
+        <input type="number" name="guests" value="2" min="1" max="10" required>
+      </div>
+
+      <button type="submit" class="btn btn-accent" style="width: 100%;">Tạo Đặt Phòng Walk-in</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Thêm Dịch Vụ -->
+<div id="serviceModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: #fff; max-width: 400px; width: 100%; border-radius: var(--radius); padding: 1.5rem; position: relative;">
+    <button onclick="document.getElementById('serviceModal').style.display='none'" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+    <h3 id="serviceModalTitle" style="color: var(--primary); margin-bottom: 1rem;">Thêm Dịch Vụ</h3>
+    <form id="serviceForm" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600;">Dịch vụ:</label>
+        <select name="service_id" required>
+          <% services.forEach(s => { %>
+            <option value="<%= s.id %>"><%= s.name %> (<%= Number(s.price).toLocaleString() %>đ)</option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label style="font-weight: 600;">Số lượng:</label>
+        <input type="number" name="quantity" value="1" min="1" max="50" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Ghi Nhận Dịch Vụ</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Check-out -->
+<div id="checkoutModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+  <div style="background: #fff; max-width: 450px; width: 100%; border-radius: var(--radius); padding: 1.75rem; position: relative;">
+    <button onclick="document.getElementById('checkoutModal').style.display='none'" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+    <h3 id="checkoutModalTitle" style="color: var(--primary); margin-bottom: 1rem;">Check-out & Thanh Toán</h3>
+    <form id="checkoutForm" method="POST">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div style="margin-bottom: 1rem;">
+        <label style="font-weight: 600;">Hình thức thanh toán:</label>
+        <select name="payment_method">
+          <option value="cash">Tiền mặt (Cash)</option>
+          <option value="card">Thẻ ngân hàng (POS Card)</option>
+          <option value="qr">Chuyển khoản / Quét mã QR</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label style="font-weight: 600;">Số tiền khách đưa (VND):</label>
+        <input type="number" name="amount_paid" id="checkoutAmountPaid" required min="0" step="1000">
+      </div>
+
+      <button type="submit" class="btn btn-success" style="width: 100%;">Thanh Toán & Xuất Hóa Đơn</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function toggleCustomerMode() {
+  const mode = document.getElementById('customerMode').value;
+  document.getElementById('existingCustomerBox').style.display = mode === 'existing' ? 'block' : 'none';
+  document.getElementById('newCustomerBox').style.display = mode === 'new' ? 'block' : 'none';
+}
+function openServiceModal(id, code) {
+  document.getElementById('serviceForm').action = '/reception/bookings/' + id + '/services';
+  document.getElementById('serviceModalTitle').innerText = 'Thêm Dịch Vụ - Đơn ' + code;
+  document.getElementById('serviceModal').style.display = 'flex';
+}
+function openCheckoutModal(id, code, total) {
+  document.getElementById('checkoutForm').action = '/reception/bookings/' + id + '/checkout';
+  document.getElementById('checkoutModalTitle').innerText = 'Check-out Đơn ' + code;
+  document.getElementById('checkoutAmountPaid').value = total;
+  document.getElementById('checkoutModal').style.display = 'flex';
+}
+const today = new Date().toISOString().split('T')[0];
+if(document.getElementById('walkInCheckIn')) document.getElementById('walkInCheckIn').value = today;
+</script>
+
+<%- include('partials/footer') %>

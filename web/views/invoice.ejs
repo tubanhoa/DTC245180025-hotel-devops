@@ -1,0 +1,86 @@
+<%- include('partials/header') %>
+
+<div class="invoice-box" style="max-width: 750px; margin: 2rem auto; background: #fff; padding: 2.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow);">
+  <div style="display: flex; justify-content: space-between; border-bottom: 2px solid var(--primary); padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+    <div>
+      <h1 style="color: var(--primary); font-size: 1.8rem; margin-bottom: 0.25rem;">GRAND HOTEL RESORT</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Địa chỉ: 123 Đường Biển Xanh, Quận 1, TP. Hồ Chí Minh</p>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Điện thoại: (028) 3888 9999 - Email: contact@grandhotel.vn</p>
+    </div>
+    <div style="text-align: right;">
+      <h2 style="color: var(--accent); font-size: 1.5rem;">HÓA ĐƠN THANH TOÁN</h2>
+      <p><strong>Mã đơn:</strong> <%= booking.booking_code %></p>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Ngày: <%= new Date(booking.paid_at || Date.now()).toLocaleString('vi-VN') %></p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+    <div>
+      <h4 style="color: var(--primary); margin-bottom: 0.4rem;">THÔNG TIN KHÁCH HÀNG:</h4>
+      <p><strong>Họ tên:</strong> <%= booking.customer_name %></p>
+      <p><strong>Số điện thoại:</strong> <%= booking.customer_phone || 'Không có' %></p>
+      <p><strong>Email:</strong> <%= booking.customer_email %></p>
+    </div>
+    <div>
+      <h4 style="color: var(--primary); margin-bottom: 0.4rem;">CHI TIẾT LƯU TRÚ:</h4>
+      <p><strong>Phòng:</strong> <%= booking.room_number %> (<%= booking.room_type_name %>)</p>
+      <p><strong>Nhận phòng:</strong> <%= new Date(booking.check_in_date).toLocaleDateString('vi-VN') %></p>
+      <p><strong>Trả phòng:</strong> <%= new Date(booking.check_out_date).toLocaleDateString('vi-VN') %></p>
+      <p><strong>Thu ngân:</strong> <%= booking.cashier_name || 'Lễ Tân' %></p>
+    </div>
+  </div>
+
+  <table style="width: 100%; margin-bottom: 1.5rem;">
+    <thead>
+      <tr style="background: #edf2f7;">
+        <th>Diễn giải khoản mục</th>
+        <th>Số lượng</th>
+        <th>Đơn giá</th>
+        <th style="text-align: right;">Thành tiền (VND)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Tiền phòng <%= booking.room_number %> (<%= booking.room_type_name %>)</td>
+        <td>1 gói</td>
+        <td><%= Number(booking.price_per_night).toLocaleString('vi-VN') %>đ</td>
+        <td style="text-align: right;"><strong><%= Number(booking.total_amount).toLocaleString('vi-VN') %>đ</strong></td>
+      </tr>
+      <% services.forEach(s => { %>
+        <tr>
+          <td>Dịch vụ phát sinh: <%= s.service_name %></td>
+          <td><%= s.quantity %></td>
+          <td><%= Number(s.unit_price).toLocaleString('vi-VN') %>đ</td>
+          <td style="text-align: right;"><%= Number(s.quantity * s.unit_price).toLocaleString('vi-VN') %>đ</td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <div style="border-top: 2px solid var(--border); padding-top: 1rem; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">
+      <span>TỔNG CỘNG THANH TOÁN:</span>
+      <span><%= Number(booking.amount_due).toLocaleString('vi-VN') %> VNĐ</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.95rem; color: #4a5568;">
+      <span>Hình thức thanh toán:</span>
+      <span><%= booking.payment_method === 'cash' ? 'Tiền mặt' : (booking.payment_method === 'card' ? 'Thẻ ngân hàng' : 'Quét mã QR') %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.95rem; color: #4a5568;">
+      <span>Tiền khách đưa:</span>
+      <span><%= Number(booking.amount_paid).toLocaleString('vi-VN') %> VNĐ</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.95rem; color: var(--success); font-weight: 600;">
+      <span>Tiền thối lại:</span>
+      <span><%= Number(booking.change_amount).toLocaleString('vi-VN') %> VNĐ</span>
+    </div>
+  </div>
+
+  <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 1rem;">
+    <a href="/reception" class="btn btn-primary btn-sm">&larr; Quay lại Lễ Tân</a>
+    <button onclick="window.print()" class="btn btn-accent">🖨️ In Hóa Đơn (Print)</button>
+  </div>
+</div>
+
+</body>
+</html>
